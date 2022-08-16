@@ -9,9 +9,9 @@ function useAccounts(): [KeyringLocalProvider, boolean, KeyringLocalAccount[]] {
 
     const options: KeyringLocalOptions = {
         passwordCallback: () => new Promise<string>((resolve, reject) => {
-            const password = prompt('password');
+            const password: string | null = prompt('password');
 
-            if (password) {
+            if (typeof password === 'string') {
                 resolve(password);
             } else {
                 reject(new Error('cancelled'))
@@ -83,6 +83,8 @@ function KeyringLocalSample() {
 
     return (
         <div className="App">
+            {unsignedTx && <pre>{JSON.stringify(unsignedTx)}</pre>}
+            {signedTx && <pre>{JSON.stringify(signedTx)}</pre>}
             <label>URI <input value={uriToAdd} onChange={onUriChange}/></label>
             <label>Password <input value={password} onChange={onPasswordChange}/></label>
             <button onClick={addAccount}>Add account</button>
