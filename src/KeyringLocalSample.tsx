@@ -1,22 +1,35 @@
 import {useEffect, useState} from 'react'
 import './App.css'
 
-import { KeyringLocalProvider, KeyringLocalAccount } from '@unique-nft/accounts/keyring-local';
+import { KeyringLocalProvider, KeyringLocalAccount, KeyringLocalOptions } from '@unique-nft/accounts/keyring-local';
 
 function useAccounts(): [KeyringLocalProvider, boolean, KeyringLocalAccount[]] {
     const [accounts, setAccounts] = useState<KeyringLocalAccount[]>([]);
     const [isReady, setIsReady] = useState(false);
-    const provider = new KeyringLocalProvider();
+
+    const options: KeyringLocalOptions = {
+        passwordCallback: () => new Promise<string>((resolve, reject) => {
+            const password = prompt('password');
+
+            if (password) {
+                resolve(password);
+            } else {
+                reject(new Error('cancelled'))
+            }
+        }),
+    };
+
+    const provider = new KeyringLocalProvider(options);
     provider.on("accountsChanged", setAccounts);
 
     useEffect(() => {
-        provider.init().then( async () => {
+        console.log('!!!!!!!!!!!!!!!!!!!!!!');
+        provider.init().then(async () => {
             const accounts = await provider.getAccounts();
-debugger;
 
             setAccounts(accounts);
             setIsReady(true);
-        })
+        }).catch(() => {});
     }, []);
 
     return [provider, isReady, accounts];
@@ -26,6 +39,9 @@ function KeyringLocalSample() {
     const [provider, isReady, accounts] = useAccounts();
     const [unsignedTx, setUnsignedTx] = useState<any>(null);
     const [signedTx, setSignedTx] = useState<any>(null);
+
+    const [uriToAdd, setUriToAdd] = useState('//Alice');
+    const [password, setPassword] = useState('');
 
     const buildTx = async () => {
         const account = await provider.first();
@@ -56,12 +72,24 @@ function KeyringLocalSample() {
         setSignedTx(signed);
     }
 
+    const addAccount = () => {
+        setUriToAdd(uriToAdd === '//Alice' ? '' : '//Alice');
+        setPassword('');
+
+        provider.addUri(uriToAdd, password);
+    }
+    const onUriChange = (event) => setUriToAdd(event.target.value);
+    const onPasswordChange = (event) => setPassword(event.target.value);
+
     return (
         <div className="App">
+            <label>URI <input value={uriToAdd} onChange={onUriChange}/></label>
+            <label>Password <input value={password} onChange={onPasswordChange}/></label>
+            <button onClick={addAccount}>Add account</button>
             <button disabled={!isReady || unsignedTx} onClick={buildTx}>Build Tx</button>
             <button disabled={!isReady || signedTx} onClick={signTx}>Sign Tx</button>
 
-            {accounts.map((account) => <p key={account.instance}>{account.instance}</p>)}
+            {accounts.map((account) => <p key={account.instance.address}>{account.instance.address}</p>)}
         </div>
     )
 }

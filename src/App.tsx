@@ -3,6 +3,7 @@ import './App.css'
 
 import PolkadotSample from "./PolkadotSample";
 import MetamaskSample from "./MetamaskSample";
+import KeyringLocalSample from "./KeyringLocalSample";
 
 enum SampleType {
     Polkadot = 'Polkadot',
@@ -15,7 +16,7 @@ const SAMPLES_MAP: Record<SampleType, Function> = {
     Polkadot: PolkadotSample,
     Metamask: MetamaskSample,
     Keyring: () => 'not implemented',
-    KeyringLocal: () => 'not implemented',
+    KeyringLocal: KeyringLocalSample,
 }
 
 function App() {

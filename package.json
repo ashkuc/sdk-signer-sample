@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@polkadot/ui-keyring": "^2.9.5",
     "@unique-nft/accounts": "file:../unique-sdk/dist/packages/accounts",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
