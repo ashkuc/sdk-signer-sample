@@ -1,47 +1,30 @@
 import {useEffect, useState} from 'react'
 import './App.css'
 
-import { KeyringLocalProvider, KeyringLocalAccount, KeyringLocalOptions } from '@unique-nft/accounts/keyring-local';
+import { KeyringProvider, KeyringAccount } from '@unique-nft/accounts/keyring';
 
-function useAccounts(): [KeyringLocalProvider, boolean, KeyringLocalAccount[]] {
-    const [accounts, setAccounts] = useState<KeyringLocalAccount[]>([]);
+function useAccounts(): [KeyringProvider, boolean, KeyringAccount[]] {
+    const [accounts, setAccounts] = useState<KeyringAccount[]>([]);
     const [isReady, setIsReady] = useState(false);
-
-    const options: KeyringLocalOptions = {
-        passwordCallback: () => new Promise<string>((resolve, reject) => {
-            const password: string | null = prompt('password');
-
-            if (typeof password === 'string') {
-                resolve(password);
-            } else {
-                reject(new Error('cancelled'))
-            }
-        }),
-    };
-
-    const provider = new KeyringLocalProvider(options);
+    const provider = new KeyringProvider();
     provider.on("accountsChanged", setAccounts);
 
     useEffect(() => {
-        console.log('!!!!!!!!!!!!!!!!!!!!!!');
-        provider.init().then(async () => {
+        provider.init().then( async () => {
             const accounts = await provider.getAccounts();
 
             setAccounts(accounts);
             setIsReady(true);
-        }).catch(() => {});
+        })
     }, []);
 
     return [provider, isReady, accounts];
 }
 
-function KeyringLocalSample() {
+function KeyringSample() {
     const [provider, isReady, accounts] = useAccounts();
     const [unsignedTx, setUnsignedTx] = useState<any>(null);
     const [signedTx, setSignedTx] = useState<any>(null);
-
-    const [uriToAdd, setUriToAdd] = useState('//Alice');
-    const [password, setPassword] = useState('');
 
     const buildTx = async () => {
         const account = await provider.first();
@@ -72,23 +55,20 @@ function KeyringLocalSample() {
         setSignedTx(signed);
     }
 
+    const [seedToAdd, setSeedToAdd] = useState('//Alice');
+
+    const onSeedChange = (event) => setSeedToAdd(event.target.value);
     const addAccount = () => {
-        setUriToAdd(uriToAdd === '//Alice' ? '' : '//Alice');
-        setPassword('');
+        setSeedToAdd(seedToAdd === '//Alice' ? '' : '//Alice');
 
-        provider.addUri(uriToAdd, password);
+        provider.addSeed(seedToAdd);
     }
-
-    const onUriChange = (event) => setUriToAdd(event.target.value);
-    const onPasswordChange = (event) => setPassword(event.target.value);
 
     return (
         <div className="App">
-            {unsignedTx && <pre>{JSON.stringify(unsignedTx)}</pre>}
-            {signedTx && <pre>{JSON.stringify(signedTx)}</pre>}
-            <label>URI <input value={uriToAdd} onChange={onUriChange}/></label>
-            <label>Password <input value={password} onChange={onPasswordChange}/></label>
-            <button disabled={!uriToAdd} onClick={addAccount}>Add account</button>
+            <label>Seed <input value={seedToAdd} onChange={onSeedChange}/></label>
+            <button disabled={!seedToAdd} onClick={addAccount}>Add account</button>
+
             <button disabled={!isReady || unsignedTx} onClick={buildTx}>Build Tx</button>
             <button disabled={!isReady || signedTx} onClick={signTx}>Sign Tx</button>
 
@@ -97,4 +77,4 @@ function KeyringLocalSample() {
     )
 }
 
-export default KeyringLocalSample;
+export default KeyringSample;

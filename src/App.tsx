@@ -3,6 +3,7 @@ import './App.css'
 
 import PolkadotSample from "./PolkadotSample";
 import MetamaskSample from "./MetamaskSample";
+import KeyringSample from "./KeyringSample";
 import KeyringLocalSample from "./KeyringLocalSample";
 
 enum SampleType {
@@ -15,13 +16,24 @@ enum SampleType {
 const SAMPLES_MAP: Record<SampleType, Function> = {
     Polkadot: PolkadotSample,
     Metamask: MetamaskSample,
-    Keyring: () => 'not implemented',
+    Keyring: KeyringSample,
     KeyringLocal: KeyringLocalSample,
 }
 
 function App() {
-  const [sampleType, setSampleType] = useState(SampleType.Polkadot);
-  const onSelect = (event) => setSampleType(event.target.value);
+  const getSampleType = () => {
+      const hash = window.location.hash.replace('#', '');
+
+      return hash && Object.values(SampleType).includes(hash)
+          ? hash
+          : SampleType.Polkadot;
+  }
+
+  const [sampleType, setSampleType] = useState(getSampleType());
+  const onSelect = (event) => {
+      window.location.hash = event.target.value;
+      setSampleType(event.target.value);
+  }
 
   const SampleComponent = SAMPLES_MAP[sampleType];
 
